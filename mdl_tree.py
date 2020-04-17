@@ -52,9 +52,7 @@ class DecisionNode(Tree):
         leaves = []
         for value in self.attribute.values:
             leaf_data = self.data.loc[self.data[self.attribute.name] == value]
-            # leaf_attrs_left = self.attrs_left.copy()
-            # leaf_attrs_left.remove(self.attribute)
-            leaf = Leaf(data=leaf_data) #, attrs_left=leaf_attrs_left)
+            leaf = Leaf(data=leaf_data)
             leaves.append(leaf)
         self.children = leaves
 
@@ -67,8 +65,6 @@ class DecisionNode(Tree):
 
     def removeNode(self, node):
         if node == self:
-            # data = 
-            # for child in self.children:
             return self, Leaf(data=node.data)
         leaf = None
         for i, child in enumerate(self.children):
@@ -130,7 +126,7 @@ class DecisionNode(Tree):
         return self.__str__()
 
 class Leaf(Tree):
-    def __init__(self, default_class=None, data=None): #, attrs_left=None):
+    def __init__(self, default_class=None, data=None):
         # super().__init__()
         if isinstance(data, pd.DataFrame):
             self.data = data
@@ -206,7 +202,6 @@ def binaryStringComplexity(n, k):
     # print(f"log choose = {np.log2(comb(n, k))}")
     # print(f"logComb = {logComb(n, k)}")
     assert k <= b
-    # return np.log2(b + 1) + np.log2(comb(n, k))
     return np.log2(b + 1) + logComb(n, k)
 
 def logComb(n, k):
