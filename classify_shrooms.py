@@ -22,7 +22,9 @@ def buildTree(data):
         for attr in allAttributes:
             print(f"==={attr.name}===")
             temp_tree = DecisionNode(attr, attrs_left=allAttributes, data=data)
-            print(temp_tree.toBits())
+            # print(temp_tree.toBits())
+            print(temp_tree.toString())
+        
 
     return tree
 

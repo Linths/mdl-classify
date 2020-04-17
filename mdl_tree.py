@@ -17,6 +17,9 @@ class Attribute:
         index = [attr.name for attr in attrs_left].index(self.name)
         return format(index, f'0{bitsNeeded}b')
 
+    def toString(self):
+        return self.name
+
 class Tree:
     def __init__(self):
         super().__init__()
@@ -32,10 +35,6 @@ class DecisionNode(Tree):
         else:
             self.children = children
     
-    '''Bit string: 1 + <attr-bit-string> + <children-bit-strings>'''
-    def toBits(self):
-        return '1' + self.attribute.toBits(self.attrs_left) + ''.join([child.toBits() for child in self.children])
-
     def bearChildren(self):
         # self.children = None
         leaves = []
@@ -46,10 +45,17 @@ class DecisionNode(Tree):
             # print(leaf_data.head())
             # print(default_class)
             leaf = Leaf(data=leaf_data)
-            print(leaf.toBits())
+            # print(leaf.toBits())
             leaves.append(leaf)
             # print(leaf.default_class)
         self.children = leaves
+    
+    '''Bit string: 1 + <attr-bit-string> + <children-bit-strings>'''
+    def toBits(self):
+        return '1' + self.attribute.toBits(self.attrs_left) + ' '.join([child.toBits() for child in self.children])
+
+    def toString(self):
+        return f"1 {self.attribute.toString()} " + ' '.join([child.toString() for child in self.children])
 
 class Leaf(Tree):
     def __init__(self, default_class=None, data=None):
@@ -68,13 +74,16 @@ class Leaf(Tree):
         else:
             self.default_class = ClassLabel.POISONOUS
 
-    def toBits(self):
-        return '0' + format(self.default_class, 'b')
-
     def isPure(self):
         if self.data.empty:
             return True
         return len(self.data['class'].value_counts().values) < 2
+
+    def toBits(self):
+        return '0' + format(self.default_class, 'b')
+
+    def toString(self):
+        return f"0{self.default_class}"
     
 
 allAttributes = [
