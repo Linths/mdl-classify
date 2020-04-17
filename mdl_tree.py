@@ -1,5 +1,6 @@
 import numpy as np
 from enum import IntEnum
+from scipy.special import comb
 
 class ClassLabel(IntEnum):
     EDIBLE = 0,
@@ -11,6 +12,9 @@ class Attribute:
         # super().__init__()
         self.name = name
         self.values = values
+
+    def getDescribeCost(self, attrs_left):
+        return np.log2(len(attrs_left))
 
     def toBits(self, attrs_left):
         bitsNeeded = int(np.ceil(np.log2(len(attrs_left))))
@@ -25,7 +29,7 @@ class Tree:
         super().__init__()
 
 class DecisionNode(Tree):
-    def __init__(self, attribute, attrs_left, data=None, children=None, ):
+    def __init__(self, attribute, attrs_left, data=None, children=None):
         super().__init__()
         self.attribute = attribute
         self.attrs_left = attrs_left # Includes attribute
@@ -36,19 +40,18 @@ class DecisionNode(Tree):
             self.children = children
     
     def bearChildren(self):
-        # self.children = None
         leaves = []
         for value in self.attribute.values:
-            # print(value)
             leaf_data = self.data.loc[self.data[self.attribute.name] == value]
-            # default_class = getPopularClass(leaf_data)
-            # print(leaf_data.head())
-            # print(default_class)
             leaf = Leaf(data=leaf_data)
-            # print(leaf.toBits())
             leaves.append(leaf)
-            # print(leaf.default_class)
         self.children = leaves
+
+    def getDescribeCost(self):
+        return 1 + self.attribute.getDescribeCost(self.attrs_left) + sum([child.getDescribeCost() for child in self.children])
+
+    def getExceptionsCost(self):
+        return sum([child.getExceptionsCost() for child in self.children])
     
     '''Bit string: 1 + <attr-bit-string> + <children-bit-strings>'''
     def toBits(self):
@@ -61,6 +64,7 @@ class Leaf(Tree):
     def __init__(self, default_class=None, data=None):
         # super().__init__()
         self.data = data
+        self.no_all = data.shape[0]
         if default_class == None:
             self.setDefaultClass()
         else:
@@ -69,10 +73,20 @@ class Leaf(Tree):
     def setDefaultClass(self):
         if self.data.empty:
             self.default_class = ClassLabel.EMPTY
+            self.no_exceptions = 0
         elif self.data['class'].mode().values[0] == 'e':
             self.default_class = ClassLabel.EDIBLE
+            self.no_exceptions = len(self.data.loc[self.data['class'] == 'd'].values)
         else:
             self.default_class = ClassLabel.POISONOUS
+            self.no_exceptions = len(self.data.loc[self.data['class'] == 'e'].values)
+        print(self.no_exceptions)
+    
+    def getDescribeCost(self):
+        return 2
+
+    def getExceptionsCost(self):
+        return binaryStringComplexity(self.no_all, self.no_exceptions)
 
     def isPure(self):
         if self.data.empty:
@@ -85,6 +99,13 @@ class Leaf(Tree):
     def toString(self):
         return f"0{self.default_class}"
     
+def binaryStringComplexity(n, k):
+    b = int(np.ceil((n-1)/2)) # (n+1)/2
+    # print(f"n = {n}, k = {k}, b = {b}")
+    # print(f"choose = {comb(n, k)}")
+    # print(f"log choose = {np.log2(comb(n, k))}")
+    assert k <= b
+    return np.log2(b + 1) + np.log2(comb(n, k))
 
 allAttributes = [
 	Attribute("cap-shape", ['b','c','x','f', 'k','s']),

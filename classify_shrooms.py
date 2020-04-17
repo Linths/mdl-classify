@@ -24,8 +24,15 @@ def buildTree(data):
             temp_tree = DecisionNode(attr, attrs_left=allAttributes, data=data)
             # print(temp_tree.toBits())
             print(temp_tree.toString())
-        
-
+            print(temp_tree.getExceptionsCost())
+            print(temp_tree.getDescribeCost())
+            cost = temp_tree.getDescribeCost() + temp_tree.getExceptionsCost()
+            if lowestCost == None or cost < lowestCost:
+                lowestCost = cost
+                bestAttr = attr
+        print("\nWinner")
+        print(lowestCost)
+        print(bestAttr.name)
     return tree
 
 def pruneTree(tree):
