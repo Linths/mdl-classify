@@ -1,6 +1,7 @@
 import numpy as np
 from enum import IntEnum
 from scipy.special import comb
+import math
 
 class ClassLabel(IntEnum):
     EDIBLE = 0,
@@ -21,8 +22,11 @@ class Attribute:
         index = [attr.name for attr in attrs_left].index(self.name)
         return format(index, f'0{bitsNeeded}b')
 
-    def toString(self):
+    def __str__(self):
         return self.name
+    
+    def __repr__(self):
+        return self.__str__()
 
 class Tree:
     def __init__(self):
@@ -43,9 +47,24 @@ class DecisionNode(Tree):
         leaves = []
         for value in self.attribute.values:
             leaf_data = self.data.loc[self.data[self.attribute.name] == value]
-            leaf = Leaf(data=leaf_data)
+            leaf_attrs_left = self.attrs_left.copy()
+            leaf_attrs_left.remove(self.attribute)
+            leaf = Leaf(data=leaf_data, attrs_left=leaf_attrs_left)
             leaves.append(leaf)
         self.children = leaves
+
+    def switchLeaf(self, oldLeaf, newLeaf):
+        for i, child in enumerate(self.children):
+            if child == oldLeaf:
+                self.children[i] = newLeaf
+            elif isinstance(child, DecisionNode):
+                child.switchLeaf(oldLeaf, newLeaf)
+            
+    def getAllLeaves(self):
+        leaves = []
+        for child in self.children:
+            leaves.extend(child.getAllLeaves())
+        return leaves
 
     def getDescribeCost(self):
         return 1 + self.attribute.getDescribeCost(self.attrs_left) + sum([child.getDescribeCost() for child in self.children])
@@ -57,31 +76,43 @@ class DecisionNode(Tree):
     def toBits(self):
         return '1' + self.attribute.toBits(self.attrs_left) + ' '.join([child.toBits() for child in self.children])
 
-    def toString(self):
-        return f"1 {self.attribute.toString()} " + ' '.join([child.toString() for child in self.children])
+    def __str__(self):
+        return f"1 {self.attribute.__str__()} " + ' '.join([child.__str__() for child in self.children])
+
+    def __repr__(self):
+        return self.__str__()
 
 class Leaf(Tree):
-    def __init__(self, default_class=None, data=None):
+    def __init__(self, default_class=None, data=None, attrs_left=None):
         # super().__init__()
         self.data = data
         self.no_all = data.shape[0]
+        self.attrs_left = attrs_left
         if default_class == None:
             self.setDefaultClass()
         else:
             self.default_class = default_class
 
     def setDefaultClass(self):
+        self.no_e = len(self.data.loc[self.data['class'] == 'e'].values)
+        self.no_p = len(self.data.loc[self.data['class'] == 'p'].values)
         if self.data.empty:
             self.default_class = ClassLabel.EMPTY
             self.no_exceptions = 0
+            self.no_good = 0
         elif self.data['class'].mode().values[0] == 'e':
             self.default_class = ClassLabel.EDIBLE
-            self.no_exceptions = len(self.data.loc[self.data['class'] == 'd'].values)
+            self.no_good = self.no_e
+            self.no_exceptions = self.no_p
         else:
             self.default_class = ClassLabel.POISONOUS
-            self.no_exceptions = len(self.data.loc[self.data['class'] == 'e'].values)
-        print(self.no_exceptions)
-    
+            self.no_good = self.no_p
+            self.no_exceptions = self.no_e
+        print(f"{self.no_good} ({self.no_exceptions}) ({self.no_all})")
+
+    def getAllLeaves(self):
+        return [self]
+
     def getDescribeCost(self):
         return 2
 
@@ -96,16 +127,32 @@ class Leaf(Tree):
     def toBits(self):
         return '0' + format(self.default_class, 'b')
 
-    def toString(self):
+    def __str__(self):
+        if self.no_e != None and self.no_p != None:
+            return f"0{self.default_class} ({self.no_e}|{self.no_p})"
         return f"0{self.default_class}"
+    
+    def __repr__(self):
+        return self.__str__()
     
 def binaryStringComplexity(n, k):
     b = int(np.ceil((n-1)/2)) # (n+1)/2
     # print(f"n = {n}, k = {k}, b = {b}")
     # print(f"choose = {comb(n, k)}")
     # print(f"log choose = {np.log2(comb(n, k))}")
+    print(f"logComb = {logComb(n, k)}")
     assert k <= b
-    return np.log2(b + 1) + np.log2(comb(n, k))
+    # return np.log2(b + 1) + np.log2(comb(n, k))
+    return np.log2(b + 1) + logComb(n, k)
+
+def logComb(n, k):
+    # x = math.factorial(n)
+    # a = np.log2(x)
+    # b = - np.log2(math.factorial(k))
+    # c = - np.log2(math.factorial(n-k))
+    # result = a + b + c
+    return sum([np.log2(x) for x in range(n-k,n+1)]) - sum([np.log2(x) for x in range(k+1)])
+
 
 allAttributes = [
 	Attribute("cap-shape", ['b','c','x','f', 'k','s']),
