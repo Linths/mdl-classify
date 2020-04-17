@@ -14,9 +14,12 @@ def buildTree(data):
         print([leaf.isPure() for leaf in tree.getAllLeaves()])
         print([leaf.no_exceptions for leaf in tree.getAllLeaves()])
         print()
+        notAllPure = False
         for leaf in leaves:
+            if availableAttributes == []:
+                notAllPure = False
+                break
             print("Entering 2")
-            notAllPure = False
             if not leaf.isPure():
                 print(f"Impure leaf {leaf}")
                 notAllPure = True
@@ -24,7 +27,7 @@ def buildTree(data):
                 bestNode = None
                 node_attrs_left = availableAttributes.copy()
                 for attr in availableAttributes:
-                    print(f"==={attr.name}===")
+                    # print(f"==={attr.name}===")
                     node = DecisionNode(attr, attrs_left=node_attrs_left, data=data)
                     # print(node.toBits())
                     # print(node)
@@ -47,10 +50,14 @@ def buildTree(data):
                 print(tree)
                 print([leaf.isPure() for leaf in tree.getAllLeaves()])
                 print([leaf.no_exceptions for leaf in tree.getAllLeaves()])
+        # print("End of 1")
     print(f"End with tree: {tree}")
-    print(f"End with leaves: {leaves}")
+    print(f"End with leaves: {tree.getAllLeaves()}")
     print([leaf.isPure() for leaf in tree.getAllLeaves()])
     print([leaf.no_exceptions for leaf in tree.getAllLeaves()])
+    print(tree.getNoData())
+    print(tree.getNoExceptions())
+    print(tree.getErrorRate())
     return tree
 
 def pruneTree(tree):

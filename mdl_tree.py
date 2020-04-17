@@ -2,6 +2,7 @@ import numpy as np
 from enum import IntEnum
 from scipy.special import comb
 import math
+import pandas as pd
 
 class ClassLabel(IntEnum):
     EDIBLE = 0,
@@ -59,7 +60,16 @@ class DecisionNode(Tree):
                 self.children[i] = newLeaf
             elif isinstance(child, DecisionNode):
                 child.switchLeaf(oldLeaf, newLeaf)
-            
+
+    def getErrorRate(self):
+        return self.getNoExceptions() / self.getNoData()
+
+    def getNoExceptions(self):
+        return sum([child.getNoExceptions() for child in self.children])
+
+    def getNoData(self):
+        return sum([child.getNoData() for child in self.children])
+
     def getAllLeaves(self):
         leaves = []
         for child in self.children:
@@ -74,7 +84,7 @@ class DecisionNode(Tree):
     
     '''Bit string: 1 + <attr-bit-string> + <children-bit-strings>'''
     def toBits(self):
-        return '1' + self.attribute.toBits(self.attrs_left) + ' '.join([child.toBits() for child in self.children])
+        return '1' + self.attribute.toBits(self.attrs_left) + ''.join([child.toBits() for child in self.children])
 
     def __str__(self):
         return f"1 {self.attribute.__str__()} " + ' '.join([child.__str__() for child in self.children])
@@ -85,8 +95,9 @@ class DecisionNode(Tree):
 class Leaf(Tree):
     def __init__(self, default_class=None, data=None): #, attrs_left=None):
         # super().__init__()
-        self.data = data
-        self.no_all = data.shape[0]
+        if isinstance(data, pd.DataFrame):
+            self.data = data
+            self.no_all = data.shape[0]
         # self.attrs_left = attrs_left
         if default_class == None:
             self.setDefaultClass()
@@ -108,7 +119,13 @@ class Leaf(Tree):
             self.default_class = ClassLabel.POISONOUS
             self.no_good = self.no_p
             self.no_exceptions = self.no_e
-        print(f"{self.no_good} ({self.no_exceptions}) ({self.no_all})")
+        # print(f"{self.no_good} ({self.no_exceptions}) ({self.no_all})")
+
+    def getNoExceptions(self):
+        return self.no_exceptions
+
+    def getNoData(self):
+        return self.no_all
 
     def getAllLeaves(self):
         return [self]
@@ -137,23 +154,20 @@ class Leaf(Tree):
     
 def binaryStringComplexity(n, k):
     b = int(np.ceil((n-1)/2)) # (n+1)/2
-    print(f"n = {n}, k = {k}, b = {b}")
+    # print(f"n = {n}, k = {k}, b = {b}")
     # print(f"choose = {comb(n, k)}")
     # print(f"log choose = {np.log2(comb(n, k))}")
-    print(f"logComb = {logComb(n, k)}")
+    # print(f"logComb = {logComb(n, k)}")
     assert k <= b
     # return np.log2(b + 1) + np.log2(comb(n, k))
     return np.log2(b + 1) + logComb(n, k)
 
 def logComb(n, k):
-    # x = math.factorial(n)
-    # a = np.log2(x)
-    # b = - np.log2(math.factorial(k))
-    # c = - np.log2(math.factorial(n-k))
-    # result = a + b + c
     if k == 0:
         return np.log2(1)
-    return sum([np.log2(x) for x in range(n-k,n+1)]) - sum([np.log2(x) for x in range(k+1)])
+    pos = sum([np.log2(x) for x in range(n-k+1,n+1)])
+    neg = sum([np.log2(x) for x in range(1,k+1)])
+    return pos - neg
 
 
 allAttributes = [
@@ -191,6 +205,7 @@ if __name__ == "__main__":
     assert attr1.toBits(allAttributes[:8]) == '011'
     assert leaf1.toBits() == '00'
     assert leaf2.toBits() == '01'
+    bits = node.toBits()
     assert node.toBits() == '1000110001'
+    assert logComb(6,2) == 3.906890595608518
     print("Test passed for basic MDL class functionality.")
-    
