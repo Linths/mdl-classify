@@ -47,9 +47,9 @@ class DecisionNode(Tree):
         leaves = []
         for value in self.attribute.values:
             leaf_data = self.data.loc[self.data[self.attribute.name] == value]
-            leaf_attrs_left = self.attrs_left.copy()
-            leaf_attrs_left.remove(self.attribute)
-            leaf = Leaf(data=leaf_data, attrs_left=leaf_attrs_left)
+            # leaf_attrs_left = self.attrs_left.copy()
+            # leaf_attrs_left.remove(self.attribute)
+            leaf = Leaf(data=leaf_data) #, attrs_left=leaf_attrs_left)
             leaves.append(leaf)
         self.children = leaves
 
@@ -83,11 +83,11 @@ class DecisionNode(Tree):
         return self.__str__()
 
 class Leaf(Tree):
-    def __init__(self, default_class=None, data=None, attrs_left=None):
+    def __init__(self, default_class=None, data=None): #, attrs_left=None):
         # super().__init__()
         self.data = data
         self.no_all = data.shape[0]
-        self.attrs_left = attrs_left
+        # self.attrs_left = attrs_left
         if default_class == None:
             self.setDefaultClass()
         else:
@@ -137,7 +137,7 @@ class Leaf(Tree):
     
 def binaryStringComplexity(n, k):
     b = int(np.ceil((n-1)/2)) # (n+1)/2
-    # print(f"n = {n}, k = {k}, b = {b}")
+    print(f"n = {n}, k = {k}, b = {b}")
     # print(f"choose = {comb(n, k)}")
     # print(f"log choose = {np.log2(comb(n, k))}")
     print(f"logComb = {logComb(n, k)}")
@@ -151,6 +151,8 @@ def logComb(n, k):
     # b = - np.log2(math.factorial(k))
     # c = - np.log2(math.factorial(n-k))
     # result = a + b + c
+    if k == 0:
+        return np.log2(1)
     return sum([np.log2(x) for x in range(n-k,n+1)]) - sum([np.log2(x) for x in range(k+1)])
 
 

@@ -2,8 +2,9 @@ from mdl_tree import *
 import pandas as pd
 
 def buildTree(data):  
-    tree = Leaf(data=data, attrs_left=allAttributes)
+    tree = Leaf(data=data) #, attrs_left=allAttributes)
     notAllPure = True
+    availableAttributes = allAttributes
     
     while (notAllPure):
         print("Entering 1")
@@ -21,9 +22,9 @@ def buildTree(data):
                 notAllPure = True
                 lowestCost = None
                 bestNode = None
-                for attr in leaf.attrs_left:
+                node_attrs_left = availableAttributes.copy()
+                for attr in availableAttributes:
                     print(f"==={attr.name}===")
-                    node_attrs_left = leaf.attrs_left.copy()
                     node = DecisionNode(attr, attrs_left=node_attrs_left, data=data)
                     # print(node.toBits())
                     # print(node)
@@ -37,6 +38,8 @@ def buildTree(data):
                 print("\nWinner")
                 print(lowestCost)
                 print(bestNode.attribute.name)
+                availableAttributes.remove(bestNode.attribute)
+                print(availableAttributes)
                 if isinstance(tree, Leaf):
                     tree = bestNode
                 else:
