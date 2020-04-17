@@ -9,6 +9,8 @@ class ClassLabel(IntEnum):
     POISONOUS = 1,
     EMPTY = 0
 
+C = 1
+
 class Attribute:
     def __init__(self, name, values):
         # super().__init__()
@@ -17,6 +19,8 @@ class Attribute:
 
     def getDescribeCost(self, attrs_left):
         return np.log2(len(attrs_left))
+        # bits = self.toBits(attrs_left)
+        # return binaryStringComplexity(len(bits), bits.count('1'))
 
     def toBits(self, attrs_left):
         bitsNeeded = int(np.ceil(np.log2(len(attrs_left))))
@@ -54,12 +58,29 @@ class DecisionNode(Tree):
             leaves.append(leaf)
         self.children = leaves
 
-    def switchLeaf(self, oldLeaf, newLeaf):
+    def switchLeaf(self, oldLeaf, newNode):
         for i, child in enumerate(self.children):
             if child == oldLeaf:
-                self.children[i] = newLeaf
+                self.children[i] = newNode
             elif isinstance(child, DecisionNode):
-                child.switchLeaf(oldLeaf, newLeaf)
+                child.switchLeaf(oldLeaf, newNode)
+
+    def removeNode(self, node):
+        if node == self:
+            # data = 
+            # for child in self.children:
+            return self, Leaf(data=node.data)
+        leaf = None
+        for i, child in enumerate(self.children):
+            if child == node:
+                leaf = Leaf(data=node.data)
+                self.children[i] = leaf
+                return self, leaf
+            elif isinstance(child, DecisionNode):
+                self.children[i], leaf = child.removeNode(node)
+                if leaf != None:
+                    return self, leaf
+        return self, leaf
 
     def getErrorRate(self):
         return self.getNoExceptions() / self.getNoData()
@@ -76,8 +97,24 @@ class DecisionNode(Tree):
             leaves.extend(child.getAllLeaves())
         return leaves
 
+    def getAllLeafParents(self):
+        parents = []
+        includeMe = True
+        for child in self.children:
+            if isinstance(child, DecisionNode):
+                includeMe = False
+                parents.extend(child.getAllLeafParents())
+        if includeMe:
+            parents = [self]
+        return parents #[child for child in self.children if isinstance(child, DecisionNode)]
+
+    def getTotalCost(self):
+        return self.getDescribeCost() + C * self.getExceptionsCost()
+
     def getDescribeCost(self):
-        return 1 + self.attribute.getDescribeCost(self.attrs_left) + sum([child.getDescribeCost() for child in self.children])
+        # return 1 + self.attribute.getDescribeCost(self.attrs_left) + sum([child.getDescribeCost() for child in self.children])
+        bits = self.toBits()
+        return binaryStringComplexity(len(bits), bits.count('1'))
 
     def getExceptionsCost(self):
         return sum([child.getExceptionsCost() for child in self.children])
@@ -121,6 +158,9 @@ class Leaf(Tree):
             self.no_exceptions = self.no_e
         # print(f"{self.no_good} ({self.no_exceptions}) ({self.no_all})")
 
+    def getErrorRate(self):
+        return self.getNoExceptions() / self.getNoData()
+
     def getNoExceptions(self):
         return self.no_exceptions
 
@@ -130,8 +170,13 @@ class Leaf(Tree):
     def getAllLeaves(self):
         return [self]
 
+    def getTotalCost(self):
+        return self.getDescribeCost() + C * self.getExceptionsCost()
+
     def getDescribeCost(self):
-        return 2
+        # return 2
+        bits = self.toBits()
+        return binaryStringComplexity(len(bits), bits.count('1'))
 
     def getExceptionsCost(self):
         return binaryStringComplexity(self.no_all, self.no_exceptions)
@@ -153,7 +198,9 @@ class Leaf(Tree):
         return self.__str__()
     
 def binaryStringComplexity(n, k):
-    b = int(np.ceil((n-1)/2)) # (n+1)/2
+    # b = int(np.ceil((n-1)/2))
+    b = np.ceil((n+1)/2)
+    # b = (n+1)/2
     # print(f"n = {n}, k = {k}, b = {b}")
     # print(f"choose = {comb(n, k)}")
     # print(f"log choose = {np.log2(comb(n, k))}")
@@ -170,7 +217,7 @@ def logComb(n, k):
     return pos - neg
 
 
-allAttributes = [
+ALL_ATTRIBUTES = [
 	Attribute("cap-shape", ['b','c','x','f', 'k','s']),
 	Attribute("cap-surface", ['f','g','y','s']),
 	Attribute("cap-color", ['n','b','c','g','r','p','u','e','w','y']),
@@ -196,16 +243,18 @@ allAttributes = [
 ]
 
 if __name__ == "__main__":
-    attr1 = allAttributes[3]
-    attr2 = allAttributes[5]
+    attr1 = ALL_ATTRIBUTES[3]
+    attr2 = ALL_ATTRIBUTES[5]
     leaf1 = Leaf(ClassLabel.EDIBLE)
     leaf2 = Leaf(ClassLabel.POISONOUS)
-    node = DecisionNode(attr1, allAttributes, children=[leaf1, leaf2])
-    assert attr1.toBits(allAttributes) == '00011'
-    assert attr1.toBits(allAttributes[:8]) == '011'
+    node = DecisionNode(attr1, ALL_ATTRIBUTES, children=[leaf1, leaf2])
+    assert attr1.toBits(ALL_ATTRIBUTES) == '00011'
+    assert attr1.toBits(ALL_ATTRIBUTES[:8]) == '011'
     assert leaf1.toBits() == '00'
     assert leaf2.toBits() == '01'
     bits = node.toBits()
     assert node.toBits() == '1000110001'
     assert logComb(6,2) == 3.906890595608518
     print("Test passed for basic MDL class functionality.")
+    print(logComb(2,1))
+    print(logComb(2,0))
