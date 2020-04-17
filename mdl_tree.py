@@ -39,7 +39,6 @@ class Leaf(Tree):
     def toBits(self):
         return '0' + format(self.default_class, 'b')
 
-
 allAttributes = [
 	Attribute("cap-shape", ['b','c','x','f', 'k','s']),
 	Attribute("cap-surface", ['f','g','y','s']),
