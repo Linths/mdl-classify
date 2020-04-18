@@ -17,9 +17,6 @@ def applyC45(data, ratio=4/5):
     train_data = data.iloc[:split]
     test_data = data.iloc[split:]
 
-    # print(train_data.shape)
-    print(train_data.head())
-
     clf = DecisionTreeClassifier(random_state=0)
     clf.fit(train_data, train_labels)
     predicted = clf.predict(test_data)
