@@ -1,4 +1,5 @@
 from mdl_tree import *
+from c45 import *
 import pandas as pd
 
 def buildTree(data):  
@@ -79,5 +80,6 @@ def pruneTree(tree):
 if __name__ == "__main__":
     data = pd.read_csv('data/mushrooms.csv')
     # print(data)
-    tree = buildTree(data)
-    tree = pruneTree(tree)
+    # tree = buildTree(data)
+    # tree = pruneTree(tree)
+    applyC45(data)
