@@ -24,7 +24,6 @@ def applyC45(data, ratio=4/5):
     clf.fit(train_data, train_labels)
     predicted = clf.predict(test_data)
     print("Accuracy: ", metrics.accuracy_score(test_labels, predicted))
-
     print(cross_val_score(clf, data, labels, cv=10))
 
 

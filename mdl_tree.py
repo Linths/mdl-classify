@@ -78,6 +78,13 @@ class DecisionNode(Tree):
                     return self, leaf
         return self, leaf
 
+    def classify(self, entry):
+        value = entry[self.attribute.name]
+        index = self.attribute.values.index(value)
+        next_step = self.children[index]
+        # print(f"{value} {index}")
+        return next_step.classify(entry)
+
     def getErrorRate(self):
         return self.getNoExceptions() / self.getNoData()
 
@@ -153,6 +160,9 @@ class Leaf(Tree):
             self.no_good = self.no_p
             self.no_exceptions = self.no_e
         # print(f"{self.no_good} ({self.no_exceptions}) ({self.no_all})")
+
+    def classify(self, entry):
+        return self.default_class
 
     def getErrorRate(self):
         return self.getNoExceptions() / self.getNoData()
