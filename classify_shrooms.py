@@ -40,7 +40,7 @@ class MDL:
         # print([leaf.no_exceptions for leaf in tree.getAllLeaves()])
         # print(tree.getNoData())
         # print(tree.getNoExceptions())
-        print(f"After building {tree.getErrorRate()}")
+        print(f"After building\t{tree.getErrorRate()}")
         return tree
 
     def pruneTree(self, tree):
@@ -78,7 +78,7 @@ class MDL:
                 #     print(alt_string)
                 #     print(f"Now:\t{tree}")
         # print(tree)
-        print(f"After pruning {tree.getErrorRate()}")
+        print(f"After pruning\t{tree.getErrorRate()}")
         return tree
 
     def trainTree(self, data):
@@ -101,9 +101,9 @@ def trainAndTest(data, ratio=4/5):
     train_data = data.iloc[:split]
     test_data = data.iloc[split:]
     test_labels = [ClassLabel.EDIBLE if x == 'e' else ClassLabel.POISONOUS for x in test_data["class"]]
-    # tree = MDL.trainTree(train_data)
-    # predicted = [tree.classify(row) for i, row in test_data.iterrows()]
-    # print("Accuracy: ", metrics.accuracy_score(test_labels, predicted))
+    tree = MDL().trainTree(train_data)
+    predicted = [tree.classify(row) for i, row in test_data.iterrows()]
+    print("Accuracy: ", metrics.accuracy_score(test_labels, predicted))
     labels = data["class"]
     data.drop("class", axis=1)
     print(cross_val_score(MDL(), data, labels, cv=10, scoring='accuracy'))

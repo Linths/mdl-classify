@@ -261,5 +261,5 @@ if __name__ == "__main__":
     assert node.toBits() == '1000110001'
     assert logComb(6,2) == 3.906890595608518
     print("Test passed for basic MDL class functionality.")
-    print(logComb(2,1))
-    print(logComb(2,0))
+    # print(logComb(2,1))
+    # print(logComb(2,0))
