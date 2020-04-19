@@ -9,14 +9,16 @@ import matplotlib.pyplot as plt
 FEATURE_COLS = ["cap-shape","cap-surface","cap-color","bruises","odor","gill-attachment","gill-spacing","gill-size","gill-color","stalk-shape","stalk-root","stalk-surface-above-ring","stalk-surface-below-ring","stalk-color-above-ring","stalk-color-below-ring","veil-type","veil-color","ring-number","ring-type","spore-print-color","population","habitat"]
 
 def applyC45(data, ratio=4/5):
+    NO_FEAT = 6 #len(FEATURE_COLS)
+
     split = int(len(data) * ratio)
 
     labels = data["class"]
     train_labels = labels.iloc[:split]
     test_labels = labels.iloc[split:]
 
-    data = data.drop("class", axis=1)
-    data = pd.get_dummies(data, FEATURE_COLS)
+    data = data.iloc[:,:NO_FEAT+1].drop("class", axis=1)
+    data = pd.get_dummies(data, FEATURE_COLS[:NO_FEAT])
     train_data = data.iloc[:split]
     test_data = data.iloc[split:]
 

@@ -6,40 +6,44 @@ class MDL:
     def __init__(self):
         super().__init__()
 
-    def buildTree(self, data):  
-        tree = Leaf(data=data)
-        not_all_pure = True
-        available_attributes = ALL_ATTRIBUTES
-        
-        while (not_all_pure):
+    def buildTree(self, data):
+        NO_FEAT = 6
+        tree = Leaf(attrs_left=ALL_ATTRIBUTES[:NO_FEAT], data=data, depth=0)
+        while (True):
             leaves = tree.getAllLeaves()
-            not_all_pure = False
+            # Disregard leaves that are pure, empty, or from a depth where no attributes are left
+            leaves = [leaf for leaf in leaves if leaf.no_all != 0 and (not leaf.isPure()) and leaf.attrs_left != []]
+            if leaves == []:
+                break
             for leaf in leaves:
-                if available_attributes == []:
-                    not_all_pure = False
-                    break
+                d = leaf.depth
+                if leaf.attrs_left == []:
+                    continue
                 if not leaf.isPure():
                     not_all_pure = True
                     lowest_cost = None
                     best_node = None
-                    node_attrs_left = available_attributes.copy()
-                    for attr in available_attributes:
-                        node = DecisionNode(attr, attrs_left=node_attrs_left, data=data)
+                    attrs_left = leaf.attrs_left
+                    for attr in attrs_left:
+                        node = DecisionNode(attr, attrs_left=attrs_left, data=data, depth=d)
                         cost = node.getTotalCost()
                         if lowest_cost == None or cost < lowest_cost:
                             lowest_cost = cost
                             best_node = node
-                    available_attributes.remove(best_node.attribute)
+                    # available_attributes.remove(best_node.attribute)
                     if isinstance(tree, Leaf):
                         tree = best_node
                     else:
                         tree.switchLeaf(leaf, best_node)
+                    # print(tree)
+                    # print()
         # print(f"End with tree: {tree}")
         # print(f"End with leaves: {tree.getAllLeaves()}")
         # print([leaf.isPure() for leaf in tree.getAllLeaves()])
         # print([leaf.no_exceptions for leaf in tree.getAllLeaves()])
         # print(tree.getNoData())
         # print(tree.getNoExceptions())
+        print(f"Tree returned: {tree}")
         print(f"After building\t{tree.getErrorRate()}")
         return tree
 
@@ -50,6 +54,7 @@ class MDL:
         while (not done):
             done = True
             if isinstance(tree, Leaf):
+                print("The whole tree got pruned!")
                 break
             parents = tree.getAllLeafParents()
             for parent in parents:
@@ -57,27 +62,38 @@ class MDL:
                     break
                 checked.append(parent)
                 done = False
-                current_cost = tree.getTotalCost()
-                current_string = f"{tree}\n{current_cost} = {tree.getDescribeCost()} + {tree.getExceptionsCost()}"
-                current_string_costs = f"{current_cost}\t= {tree.getDescribeCost()}\t+ {tree.getExceptionsCost()}"
-                tree, leaf = tree.removeNode(parent)
-                alt_cost = tree.getTotalCost()
-                alt_string = f"{tree}\n{alt_cost} = {tree.getDescribeCost()} + {tree.getExceptionsCost()}"
-                alt_string_costs = f"{alt_cost}\t= {tree.getDescribeCost()}\t+ {tree.getExceptionsCost()}"
-                if leaf == None:
-                    print(f"Oops! {parent.attribute}")
-                # print(parent.attribute.name)
-                # print(current_string_costs)
-                # print(alt_string_costs)
-                if alt_cost >= current_cost:
-                    # Update is not better
-                    tree.switchLeaf(leaf, parent)
+                current_cost = parent.getTotalCost()
+                leaf = Leaf(data=parent.data, attrs_left=parent.attrs_left)
+                alt_cost = leaf.getTotalCost()
+
+                if alt_cost < current_cost:
+                    # print(f"{current_cost} = {parent.getTotalCost()} + {leaf.getExceptionsCost()}")
+                    # print(f"{alt_cost} = {leaf.getTotalCost()} + {leaf.getExceptionsCost()}")
+                    tree.removeNode(parent)
+
+                # current_cost = tree.getTotalCost()
+                # # current_string = f"{tree}\n{current_cost} = {tree.getDescribeCost()} + {tree.getExceptionsCost()}"
+                # # current_string_costs = f"{current_cost}\t= {tree.getDescribeCost()}\t+ {tree.getExceptionsCost()}"
+                # tree, leaf = tree.removeNode(parent)
+                # alt_cost = tree.getTotalCost()
+                # # alt_string = f"{tree}\n{alt_cost} = {tree.getDescribeCost()} + {tree.getExceptionsCost()}"
+                # # alt_string_costs = f"{alt_cost}\t= {tree.getDescribeCost()}\t+ {tree.getExceptionsCost()}"
+                # if leaf == None:
+                #     print(f"Oops! {parent.attribute}")
+                # # print(parent.attribute.name)
+                # # print(current_string_costs)
+                # # print(alt_string_costs)
+                # # print(f"Try switch {parent.attribute.name} @{parent.depth}")
+                # if alt_cost >= current_cost:
+                #     # Update is not better
+                #     # print(current_string_costs)
+                #     # print(alt_string_costs)
+                #     tree.switchLeaf(leaf, parent)
                 # else:
-                #     print()
-                #     print(current_string)
-                #     print(alt_string)
-                #     print(f"Now:\t{tree}")
-        # print(tree)
+                    # print(current_string_costs)
+                    # print(alt_string_costs)
+                    # print(f"Now:\t{tree}")
+        print(tree)
         print(f"After pruning\t{tree.getErrorRate()}")
         return tree
 
@@ -97,6 +113,9 @@ class MDL:
         return {} #{'type' : 'mdl'}
 
 def trainAndTest(data, ratio=4/5):
+    NO_ROWS = data.shape[0] #5000
+    data = data.iloc[:NO_ROWS]
+    print(data)
     split = int(len(data) * ratio)
     train_data = data.iloc[:split]
     test_data = data.iloc[split:]

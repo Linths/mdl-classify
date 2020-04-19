@@ -53,7 +53,9 @@ class DecisionNode(Tree):
         leaves = []
         for value in self.attribute.values:
             leaf_data = self.data.loc[self.data[self.attribute.name] == value]
-            leaf = Leaf(data=leaf_data, depth=self.depth+1)
+            attrs_left_child = self.attrs_left.copy()
+            attrs_left_child.remove(self.attribute)
+            leaf = Leaf(data=leaf_data, depth=self.depth+1, attrs_left=attrs_left_child)
             leaves.append(leaf)
         self.children = leaves
 
@@ -68,11 +70,11 @@ class DecisionNode(Tree):
 
     def removeNode(self, node):
         if node == self:
-            return self, Leaf(data=node.data)
+            return self, Leaf(data=node.data, attrs_left=node.attrs_left)
         leaf = None
         for i, child in enumerate(self.children):
             if child == node:
-                leaf = Leaf(data=node.data)
+                leaf = Leaf(data=node.data, attrs_left=node.attrs_left)
                 self.children[i] = leaf
                 return self, leaf
             elif isinstance(child, DecisionNode):
@@ -137,9 +139,10 @@ class DecisionNode(Tree):
         return self.__str__()
 
 class Leaf(Tree):
-    def __init__(self, default_class=None, data=None, depth=None):
+    def __init__(self, attrs_left, default_class=None, data=None, depth=None):
         # super().__init__()
         self.depth = depth
+        self.attrs_left = attrs_left
         if isinstance(data, pd.DataFrame):
             self.data = data
             self.no_all = data.shape[0]
@@ -190,7 +193,7 @@ class Leaf(Tree):
         # return 2
         bits = self.toBits()
         result = binaryStringComplexity(len(bits), bits.count('1'))
-        print(result)
+        # print(result)
         return result
 
     def getExceptionsCost(self):
