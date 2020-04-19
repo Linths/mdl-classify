@@ -38,11 +38,12 @@ class Tree:
         super().__init__()
 
 class DecisionNode(Tree):
-    def __init__(self, attribute, attrs_left, data=None, children=None):
+    def __init__(self, attribute, attrs_left, data=None, children=None, depth=None):
         super().__init__()
         self.attribute = attribute
         self.attrs_left = attrs_left # Includes attribute
         self.data = data
+        self.depth = depth
         if children == None:
             self.bearChildren()
         else:
@@ -52,11 +53,13 @@ class DecisionNode(Tree):
         leaves = []
         for value in self.attribute.values:
             leaf_data = self.data.loc[self.data[self.attribute.name] == value]
-            leaf = Leaf(data=leaf_data)
+            leaf = Leaf(data=leaf_data, depth=self.depth+1)
             leaves.append(leaf)
         self.children = leaves
 
     def switchLeaf(self, oldLeaf, newNode):
+        d = oldLeaf.depth
+        newNode.depth = d
         for i, child in enumerate(self.children):
             if child == oldLeaf:
                 self.children[i] = newNode
@@ -112,6 +115,7 @@ class DecisionNode(Tree):
         return parents #[child for child in self.children if isinstance(child, DecisionNode)]
 
     def getTotalCost(self):
+        # print(f"t = {self.getDescribeCost()}, d = {self.getExceptionsCost()}")
         return self.getDescribeCost() + C * self.getExceptionsCost()
 
     def getDescribeCost(self):
@@ -127,14 +131,15 @@ class DecisionNode(Tree):
         return '1' + self.attribute.toBits(self.attrs_left) + ''.join([child.toBits() for child in self.children])
 
     def __str__(self):
-        return f"1 {self.attribute.__str__()} " + ' '.join([child.__str__() for child in self.children])
+        return f"1 {self.attribute.__str__()} [" + ' '.join([child.__str__() for child in self.children]) + "]"
 
     def __repr__(self):
         return self.__str__()
 
 class Leaf(Tree):
-    def __init__(self, default_class=None, data=None):
+    def __init__(self, default_class=None, data=None, depth=None):
         # super().__init__()
+        self.depth = depth
         if isinstance(data, pd.DataFrame):
             self.data = data
             self.no_all = data.shape[0]
@@ -168,9 +173,11 @@ class Leaf(Tree):
         return self.getNoExceptions() / self.getNoData()
 
     def getNoExceptions(self):
+        assert self.no_exceptions != None
         return self.no_exceptions
 
     def getNoData(self):
+        assert self.no_all != None
         return self.no_all
 
     def getAllLeaves(self):
@@ -182,7 +189,9 @@ class Leaf(Tree):
     def getDescribeCost(self):
         # return 2
         bits = self.toBits()
-        return binaryStringComplexity(len(bits), bits.count('1'))
+        result = binaryStringComplexity(len(bits), bits.count('1'))
+        print(result)
+        return result
 
     def getExceptionsCost(self):
         return binaryStringComplexity(self.no_all, self.no_exceptions)
@@ -191,6 +200,9 @@ class Leaf(Tree):
         if self.data.empty:
             return True
         return len(self.data['class'].value_counts().values) < 2
+
+    def getEntropy(self):
+        return makeEntropyTerm(self.no_e, self.no_all) + makeEntropyTerm(self.no_p, self.no_p)
 
     def toBits(self):
         return '0' + format(self.default_class, 'b')
@@ -213,6 +225,11 @@ def binaryStringComplexity(n, k):
     # print(f"logComb = {logComb(n, k)}")
     assert k <= b
     return np.log2(b + 1) + logComb(n, k)
+
+def makeEntropyTerm(sel_items, all_items):
+    if sel_items == 0 or all_items == 0:
+        return 0
+    return -(sel_items/all_items) * np.log2(sel_items/all_items)
 
 def logComb(n, k):
     if k == 0:
