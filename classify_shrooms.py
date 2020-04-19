@@ -2,12 +2,18 @@ from mdl_tree import *
 from c45 import *
 import pandas as pd
 
+C = 1
+CHOOSE_SHROOM = True
+NO_FEAT = 6 #len(ALL_ATTRIBUTES) ##6
+NO_ROWS = -1 #-1 #data.shape[0] #5000
+
+print(f"{NO_FEAT} features, {NO_ROWS} rows, C={C}, using mushroom dataset={CHOOSE_SHROOM}")
+
 class MDL:
     def __init__(self):
         super().__init__()
 
     def buildTree(self, data):
-        NO_FEAT = 6 #len(ALL_ATTRIBUTES) ##6
         tree = Leaf(attrs_left=ALL_ATTRIBUTES[:NO_FEAT], data=data, depth=0)
         while (True):
             leaves = tree.getAllLeaves()
@@ -44,7 +50,7 @@ class MDL:
         # print(tree.getNoData())
         # print(tree.getNoExceptions())
         # print(f"Tree returned: {tree}")
-        print(f"After building\t{tree.getErrorRate()}\t{len(tree.getAllLeaves())}")
+        print(f"After building\t{tree.getErrorRate()}\t{len(tree.getAllLeaves())}\t{tree.countDecisionNodes()}")
         return tree
 
     def pruneTree(self, tree):
@@ -94,7 +100,7 @@ class MDL:
                     # print(alt_string_costs)
                     # print(f"Now:\t{tree}")
         # print(tree)
-        print(f"After pruning\t{tree.getErrorRate()}\t{len(tree.getAllLeaves())}")
+        print(f"After pruning\t{tree.getErrorRate()}\t{len(tree.getAllLeaves())}\t{tree.countDecisionNodes()}")
         return tree
 
     def trainTree(self, data):
@@ -102,7 +108,7 @@ class MDL:
         return self.pruneTree(tree)
 
     def fit(self, train_data, train_labels):
-        train_data["class"] = train_labels
+        train_data.loc["class"] = train_labels
         tree = self.trainTree(train_data)
         self.tree = tree
 
@@ -113,9 +119,11 @@ class MDL:
         return {} #{'type' : 'mdl'}
 
 def trainAndTest(data, ratio=4/5):
-    NO_ROWS = data.shape[0] #5000
-    data = data.iloc[:NO_ROWS]
-    print(data)
+    num_rows = NO_ROWS
+    if num_rows == -1:
+        num_rows = data.shape[0]
+    data = data.iloc[4100:4100+num_rows]
+    # print(data)
     split = int(len(data) * ratio)
     train_data = data.iloc[:split]
     test_data = data.iloc[split:]
@@ -126,11 +134,11 @@ def trainAndTest(data, ratio=4/5):
     labels = data["class"]
     data.drop("class", axis=1)
     # k-fold CV
-    accs = cross_val_score(MDL(), data, labels, cv=5, scoring='accuracy')
+    k = 5
+    print(f"{k}-fold cross validation")
+    accs = cross_val_score(MDL(), data, labels, cv=k, scoring='accuracy')
     print(accs)
     print(np.average(accs))
-
-CHOOSE_SHROOM = True
 
 if __name__ == "__main__":
     if CHOOSE_SHROOM:
@@ -140,7 +148,6 @@ if __name__ == "__main__":
         data = data.rename(columns={"V10":"class"})
         data = data.replace("positive", "e")
         data = data.replace("negative", "p")
-        print(data)
     # tree = buildTree(data)
     # tree = pruneTree(tree)
     trainAndTest(data)

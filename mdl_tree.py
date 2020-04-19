@@ -3,14 +3,12 @@ from enum import IntEnum
 from scipy.special import comb
 import math
 import pandas as pd
-from classify_shrooms import CHOOSE_SHROOM
+from classify_shrooms import CHOOSE_SHROOM, C
 
 class ClassLabel(IntEnum):
     EDIBLE = 0,
     POISONOUS = 1,
     EMPTY = 0
-
-C = 1/20
 
 class Attribute:
     def __init__(self, name, values):
@@ -106,6 +104,11 @@ class DecisionNode(Tree):
             leaves.extend(child.getAllLeaves())
         return leaves
 
+    def countDecisionNodes(self):
+        # count = 1
+        return 1 + sum([child.countDecisionNodes() for child in self.children if isinstance(child, DecisionNode)])
+           
+
     def getAllLeafParents(self):
         parents = []
         includeMe = True
@@ -184,6 +187,9 @@ class Leaf(Tree):
         assert self.no_all != None
         return self.no_all
 
+    def countDecisionNodes(self):
+        return 0
+
     def getAllLeaves(self):
         return [self]
 
@@ -221,14 +227,16 @@ class Leaf(Tree):
     
 def binaryStringComplexity(n, k):
     # b = int(np.ceil((n-1)/2))
-    b = np.ceil((n+1)/2)
+    # b = np.ceil((n+1)/2)
+    b = (n+1)/2
     # b = (n+1)/2
     # print(f"n = {n}, k = {k}, b = {b}")
     # print(f"choose = {comb(n, k)}")
     # print(f"log choose = {np.log2(comb(n, k))}")
     # print(f"logComb = {logComb(n, k)}")
-    assert k <= b
-    return np.log2(b + 1) + logComb(n, k)
+    if k <= b:
+        return np.log2(b + 1) + logComb(n, k)
+    return n
 
 def makeEntropyTerm(sel_items, all_items):
     if sel_items == 0 or all_items == 0:
