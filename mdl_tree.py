@@ -10,7 +10,7 @@ class ClassLabel(IntEnum):
     POISONOUS = 1,
     EMPTY = 0
 
-C = 1/10
+C = 1/20
 
 class Attribute:
     def __init__(self, name, values):
