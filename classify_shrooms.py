@@ -106,7 +106,10 @@ def trainAndTest(data, ratio=4/5):
     print("Accuracy: ", metrics.accuracy_score(test_labels, predicted))
     labels = data["class"]
     data.drop("class", axis=1)
-    print(cross_val_score(MDL(), data, labels, cv=10, scoring='accuracy'))
+    # k-fold CV
+    accs = cross_val_score(MDL(), data, labels, cv=10, scoring='accuracy')
+    print(accs)
+    print(np.average(accs))
 
 if __name__ == "__main__":
     data = pd.read_csv('data/mushrooms.csv')
