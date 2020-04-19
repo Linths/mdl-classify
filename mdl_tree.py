@@ -3,13 +3,14 @@ from enum import IntEnum
 from scipy.special import comb
 import math
 import pandas as pd
+from classify_shrooms import CHOOSE_SHROOM
 
 class ClassLabel(IntEnum):
     EDIBLE = 0,
     POISONOUS = 1,
     EMPTY = 0
 
-C = 1
+C = 1/10
 
 class Attribute:
     def __init__(self, name, values):
@@ -241,31 +242,43 @@ def logComb(n, k):
     neg = sum([np.log2(x) for x in range(1,k+1)])
     return pos - neg
 
-
-ALL_ATTRIBUTES = [
-	Attribute("cap-shape", ['b','c','x','f', 'k','s']),
-	Attribute("cap-surface", ['f','g','y','s']),
-	Attribute("cap-color", ['n','b','c','g','r','p','u','e','w','y']),
-	Attribute("bruises", ['t','f']),
-	Attribute("odor", ['a','l','c','y','f','m','n','p','s']),
-	Attribute("gill-attachment", ['a','d','f','n']),
-	Attribute("gill-spacing", ['c','w','d']),
-	Attribute("gill-size", ['b','n']),
-	Attribute("gill-color", ['k','n','b','h','g', 'r','o','p','u','e','w','y']),
-	Attribute("stalk-shape", ['e','t']),
-	Attribute("stalk-root", ['b','c','u','e','z','r','?']),
-	Attribute("stalk-surface-above-ring", ['f','y','k','s']),
-	Attribute("stalk-surface-below-ring", ['f','y','k','s']),
-	Attribute("stalk-color-above-ring", ['n','b','c','g','o','p','e','w','y']),
-	Attribute("stalk-color-below-ring", ['n','b','c','g','o','p','e','w','y']),
-	Attribute("veil-type", ['p','u']),
-	Attribute("veil-color", ['n','o','w','y']),
-	Attribute("ring-number", ['n','o','t']),
-	Attribute("ring-type", ['c','e','f','l','n','p','s','z']),
-	Attribute("spore-print-color", ['k','n','b','h','r','o','u','w','y']),
-	Attribute("population", ['a','c','n','s','v','y']),
-	Attribute("habitat", ['g','l','m','p','u','w','d'])
-]
+if CHOOSE_SHROOM:
+    ALL_ATTRIBUTES = [
+        Attribute("cap-shape", ['b','c','x','f', 'k','s']),
+        Attribute("cap-surface", ['f','g','y','s']),
+        Attribute("cap-color", ['n','b','c','g','r','p','u','e','w','y']),
+        Attribute("bruises", ['t','f']),
+        Attribute("odor", ['a','l','c','y','f','m','n','p','s']),
+        Attribute("gill-attachment", ['a','d','f','n']),
+        Attribute("gill-spacing", ['c','w','d']),
+        Attribute("gill-size", ['b','n']),
+        Attribute("gill-color", ['k','n','b','h','g', 'r','o','p','u','e','w','y']),
+        Attribute("stalk-shape", ['e','t']),
+        Attribute("stalk-root", ['b','c','u','e','z','r','?']),
+        Attribute("stalk-surface-above-ring", ['f','y','k','s']),
+        Attribute("stalk-surface-below-ring", ['f','y','k','s']),
+        Attribute("stalk-color-above-ring", ['n','b','c','g','o','p','e','w','y']),
+        Attribute("stalk-color-below-ring", ['n','b','c','g','o','p','e','w','y']),
+        Attribute("veil-type", ['p','u']),
+        Attribute("veil-color", ['n','o','w','y']),
+        Attribute("ring-number", ['n','o','t']),
+        Attribute("ring-type", ['c','e','f','l','n','p','s','z']),
+        Attribute("spore-print-color", ['k','n','b','h','r','o','u','w','y']),
+        Attribute("population", ['a','c','n','s','v','y']),
+        Attribute("habitat", ['g','l','m','p','u','w','d'])
+    ]
+else:
+    ALL_ATTRIBUTES = [
+        Attribute("V1", ['x','o','b']),
+        Attribute("V2", ['x','o','b']),
+        Attribute("V3", ['x','o','b']),
+        Attribute("V4", ['x','o','b']),
+        Attribute("V5", ['x','o','b']),
+        Attribute("V6", ['x','o','b']),
+        Attribute("V7", ['x','o','b']),
+        Attribute("V8", ['x','o','b']),
+        Attribute("V9", ['x','o','b'])
+    ]
 
 if __name__ == "__main__":
     attr1 = ALL_ATTRIBUTES[3]

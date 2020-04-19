@@ -7,7 +7,7 @@ class MDL:
         super().__init__()
 
     def buildTree(self, data):
-        NO_FEAT = 6
+        NO_FEAT = 6 #len(ALL_ATTRIBUTES) ##6
         tree = Leaf(attrs_left=ALL_ATTRIBUTES[:NO_FEAT], data=data, depth=0)
         while (True):
             leaves = tree.getAllLeaves()
@@ -43,8 +43,8 @@ class MDL:
         # print([leaf.no_exceptions for leaf in tree.getAllLeaves()])
         # print(tree.getNoData())
         # print(tree.getNoExceptions())
-        print(f"Tree returned: {tree}")
-        print(f"After building\t{tree.getErrorRate()}")
+        # print(f"Tree returned: {tree}")
+        print(f"After building\t{tree.getErrorRate()}\t{len(tree.getAllLeaves())}")
         return tree
 
     def pruneTree(self, tree):
@@ -93,8 +93,8 @@ class MDL:
                     # print(current_string_costs)
                     # print(alt_string_costs)
                     # print(f"Now:\t{tree}")
-        print(tree)
-        print(f"After pruning\t{tree.getErrorRate()}")
+        # print(tree)
+        print(f"After pruning\t{tree.getErrorRate()}\t{len(tree.getAllLeaves())}")
         return tree
 
     def trainTree(self, data):
@@ -126,13 +126,21 @@ def trainAndTest(data, ratio=4/5):
     labels = data["class"]
     data.drop("class", axis=1)
     # k-fold CV
-    accs = cross_val_score(MDL(), data, labels, cv=10, scoring='accuracy')
+    accs = cross_val_score(MDL(), data, labels, cv=5, scoring='accuracy')
     print(accs)
     print(np.average(accs))
 
+CHOOSE_SHROOM = True
+
 if __name__ == "__main__":
-    data = pd.read_csv('data/mushrooms.csv')
-    # print(data)
+    if CHOOSE_SHROOM:
+        data = pd.read_csv('data/mushrooms.csv')
+    else:
+        data = pd.read_csv('data/tic-tac-toe-endgame.csv')
+        data = data.rename(columns={"V10":"class"})
+        data = data.replace("positive", "e")
+        data = data.replace("negative", "p")
+        print(data)
     # tree = buildTree(data)
     # tree = pruneTree(tree)
     trainAndTest(data)
