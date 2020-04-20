@@ -1,6 +1,7 @@
 from mdl_tree import *
-from c45 import *
+from cart import *
 import pandas as pd
+from sklearn.feature_selection import mutual_info_classif
 
 C = 1
 CHOOSE_SHROOM = True
@@ -124,10 +125,12 @@ def trainAndTest(data, ratio=4/5):
         num_rows = data.shape[0]
     data = data.iloc[4100:4100+num_rows]
     # print(data)
+    labels = data["class"]
     split = int(len(data) * ratio)
     train_data = data.iloc[:split]
     test_data = data.iloc[split:]
     test_labels = [ClassLabel.EDIBLE if x == 'e' else ClassLabel.POISONOUS for x in test_data["class"]]
+    # Train and test, single time
     tree = MDL().trainTree(train_data)
     predicted = [tree.classify(row) for i, row in test_data.iterrows()]
     print("Accuracy: ", metrics.accuracy_score(test_labels, predicted))
@@ -140,6 +143,26 @@ def trainAndTest(data, ratio=4/5):
     print(accs)
     print(np.average(accs))
 
+def getMutualInformation(data):
+    data = data.iloc[:NO_FEAT]
+    data = data.applymap(ord)
+    print(data)
+    labels = data["class"]
+    data = data.iloc[:,:NO_FEAT+1].drop("class", axis=1)
+    # data = pd.get_dummies(data, FEATURE_COLS[:NO_FEAT])
+    print(f"I(X;y) = {mutual_info_classif(data, labels, discrete_features=True)}")
+    # data = data.apply(concatDecimals, axis=1)
+    # print(data)
+    # print(f"I(X;y) = {mutual_info_classif(data, labels, discrete_features=True)}")
+
+def concatDecimals(decimals, spots=3):
+    result = 0
+    for d in decimals:
+        if result != 0:
+            result = result * 10**spots
+        result += d
+    return result
+
 if __name__ == "__main__":
     if CHOOSE_SHROOM:
         data = pd.read_csv('data/mushrooms.csv')
@@ -150,6 +173,8 @@ if __name__ == "__main__":
         data = data.replace("negative", "p")
     # tree = buildTree(data)
     # tree = pruneTree(tree)
+    print(data)
+    getMutualInformation(data)
     trainAndTest(data)
     # one_entry = data.iloc[-1]
     # # print(one_entry)
