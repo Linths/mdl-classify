@@ -3,7 +3,7 @@ from enum import IntEnum
 from scipy.special import comb
 import math
 import pandas as pd
-from classify_shrooms import CHOOSE_SHROOM, C
+from classify_shrooms import CHOOSE_SHROOM, PARAM_C
 
 class ClassLabel(IntEnum):
     EDIBLE = 0,
@@ -122,7 +122,7 @@ class DecisionNode(Tree):
 
     def getTotalCost(self):
         # print(f"t = {self.getDescribeCost()}, d = {self.getExceptionsCost()}")
-        return self.getDescribeCost() + C * self.getExceptionsCost()
+        return self.getDescribeCost() + PARAM_C * self.getExceptionsCost()
 
     def getDescribeCost(self):
         # return 1 + self.attribute.getDescribeCost(self.attrs_left) + sum([child.getDescribeCost() for child in self.children])
@@ -194,7 +194,7 @@ class Leaf(Tree):
         return [self]
 
     def getTotalCost(self):
-        return self.getDescribeCost() + C * self.getExceptionsCost()
+        return self.getDescribeCost() + PARAM_C * self.getExceptionsCost()
 
     def getDescribeCost(self):
         # return 2

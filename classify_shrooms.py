@@ -2,13 +2,14 @@ from mdl_tree import *
 from cart import *
 import pandas as pd
 from sklearn.feature_selection import mutual_info_classif
+import time
 
-C = 1
+PARAM_C = 1
 CHOOSE_SHROOM = True
 NO_FEAT = 6 #len(ALL_ATTRIBUTES) ##6
 NO_ROWS = -1 #-1 #data.shape[0] #5000
 
-print(f"{NO_FEAT} features, {NO_ROWS} rows, C={C}, using mushroom dataset={CHOOSE_SHROOM}")
+print(f"{NO_FEAT} features, {NO_ROWS} rows, C={PARAM_C}, using mushroom dataset={CHOOSE_SHROOM}")
 
 class MDL:
     def __init__(self):
@@ -123,8 +124,9 @@ def trainAndTest(data, ratio=4/5):
     num_rows = NO_ROWS
     if num_rows == -1:
         num_rows = data.shape[0]
-    data = data.iloc[4100:4100+num_rows]
-    # print(data)
+    # data = data.iloc[4100:4100+num_rows]
+    data = data.iloc[:NO_ROWS]
+    print(data)
     labels = data["class"]
     split = int(len(data) * ratio)
     train_data = data.iloc[:split]
@@ -139,14 +141,17 @@ def trainAndTest(data, ratio=4/5):
     # k-fold CV
     k = 5
     print(f"{k}-fold cross validation")
+    start_time = time.clock()
     accs = cross_val_score(MDL(), data, labels, cv=k, scoring='accuracy')
+    print("%.2f seconds used" % (time.time() - start_time))
     print(accs)
     print(np.average(accs))
+    print(np.var(accs))
 
 def getMutualInformation(data):
     data = data.iloc[:NO_FEAT]
     data = data.applymap(ord)
-    print(data)
+    # print(data)
     labels = data["class"]
     data = data.iloc[:,:NO_FEAT+1].drop("class", axis=1)
     # data = pd.get_dummies(data, FEATURE_COLS[:NO_FEAT])
@@ -173,7 +178,6 @@ if __name__ == "__main__":
         data = data.replace("negative", "p")
     # tree = buildTree(data)
     # tree = pruneTree(tree)
-    print(data)
     getMutualInformation(data)
     trainAndTest(data)
     # one_entry = data.iloc[-1]
