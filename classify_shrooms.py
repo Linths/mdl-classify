@@ -38,19 +38,10 @@ class MDL:
                         if lowest_cost == None or cost < lowest_cost:
                             lowest_cost = cost
                             best_node = node
-                    # available_attributes.remove(best_node.attribute)
                     if isinstance(tree, Leaf):
                         tree = best_node
                     else:
                         tree.switchLeaf(leaf, best_node)
-                    # print(tree)
-                    # print()
-        # print(f"End with tree: {tree}")
-        # print(f"End with leaves: {tree.getAllLeaves()}")
-        # print([leaf.isPure() for leaf in tree.getAllLeaves()])
-        # print([leaf.no_exceptions for leaf in tree.getAllLeaves()])
-        # print(tree.getNoData())
-        # print(tree.getNoExceptions())
         # print(f"Tree returned: {tree}")
         print(f"After building\t{tree.getErrorRate()}\t{len(tree.getAllLeaves())}\t{tree.countDecisionNodes()}")
         return tree
@@ -73,34 +64,8 @@ class MDL:
                 current_cost = parent.getTotalCost()
                 leaf = Leaf(data=parent.data, attrs_left=parent.attrs_left)
                 alt_cost = leaf.getTotalCost()
-
                 if alt_cost < current_cost:
-                    # print(f"{current_cost} = {parent.getTotalCost()} + {leaf.getExceptionsCost()}")
-                    # print(f"{alt_cost} = {leaf.getTotalCost()} + {leaf.getExceptionsCost()}")
                     tree.removeNode(parent)
-
-                # current_cost = tree.getTotalCost()
-                # # current_string = f"{tree}\n{current_cost} = {tree.getDescribeCost()} + {tree.getExceptionsCost()}"
-                # # current_string_costs = f"{current_cost}\t= {tree.getDescribeCost()}\t+ {tree.getExceptionsCost()}"
-                # tree, leaf = tree.removeNode(parent)
-                # alt_cost = tree.getTotalCost()
-                # # alt_string = f"{tree}\n{alt_cost} = {tree.getDescribeCost()} + {tree.getExceptionsCost()}"
-                # # alt_string_costs = f"{alt_cost}\t= {tree.getDescribeCost()}\t+ {tree.getExceptionsCost()}"
-                # if leaf == None:
-                #     print(f"Oops! {parent.attribute}")
-                # # print(parent.attribute.name)
-                # # print(current_string_costs)
-                # # print(alt_string_costs)
-                # # print(f"Try switch {parent.attribute.name} @{parent.depth}")
-                # if alt_cost >= current_cost:
-                #     # Update is not better
-                #     # print(current_string_costs)
-                #     # print(alt_string_costs)
-                #     tree.switchLeaf(leaf, parent)
-                # else:
-                    # print(current_string_costs)
-                    # print(alt_string_costs)
-                    # print(f"Now:\t{tree}")
         # print(tree)
         print(f"After pruning\t{tree.getErrorRate()}\t{len(tree.getAllLeaves())}\t{tree.countDecisionNodes()}")
         return tree
@@ -118,13 +83,12 @@ class MDL:
         return ['e' if self.tree.classify(row) == ClassLabel.EDIBLE else 'p' for i, row in X.iterrows()]
     
     def get_params(self, deep=False):
-        return {} #{'type' : 'mdl'}
+        return {}
 
 def trainAndTest(data, ratio=4/5):
     num_rows = NO_ROWS
     if num_rows == -1:
         num_rows = data.shape[0]
-    # data = data.iloc[4100:4100+num_rows]
     data = data.iloc[:NO_ROWS]
     print(data)
     labels = data["class"]
@@ -148,17 +112,13 @@ def trainAndTest(data, ratio=4/5):
     print(np.average(accs))
     print(np.var(accs))
 
-def getMutualInformation(data):
+def printMutualInformation(data):
     data = data.iloc[:NO_FEAT]
     data = data.applymap(ord)
     # print(data)
     labels = data["class"]
     data = data.iloc[:,:NO_FEAT+1].drop("class", axis=1)
-    # data = pd.get_dummies(data, FEATURE_COLS[:NO_FEAT])
     print(f"I(X;y) = {mutual_info_classif(data, labels, discrete_features=True)}")
-    # data = data.apply(concatDecimals, axis=1)
-    # print(data)
-    # print(f"I(X;y) = {mutual_info_classif(data, labels, discrete_features=True)}")
 
 def concatDecimals(decimals, spots=3):
     result = 0
@@ -178,8 +138,5 @@ if __name__ == "__main__":
         data = data.replace("negative", "p")
     # tree = buildTree(data)
     # tree = pruneTree(tree)
-    getMutualInformation(data)
+    printMutualInformation(data)
     trainAndTest(data)
-    # one_entry = data.iloc[-1]
-    # # print(one_entry)
-    # print(tree.classify(one_entry))

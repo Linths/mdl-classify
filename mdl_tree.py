@@ -226,17 +226,8 @@ class Leaf(Tree):
         return self.__str__()
     
 def binaryStringComplexity(n, k):
-    # b = int(np.ceil((n-1)/2))
     b = np.ceil((n+1)/2)
-    # b = (n+1)/2
-    # b = (n+1)/2
-    # print(f"n = {n}, k = {k}, b = {b}")
-    # print(f"choose = {comb(n, k)}")
-    # print(f"log choose = {np.log2(comb(n, k))}")
-    # print(f"logComb = {logComb(n, k)}")
     assert k <= b
-    # if k <= b:
-    #     return np.log2(b + 1) + logComb(n, k)
     return n
 
 def makeEntropyTerm(sel_items, all_items):
